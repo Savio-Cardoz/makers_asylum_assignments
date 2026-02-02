@@ -51,6 +51,8 @@ bool inLDRTest = false;
 bool inPotTest = false;
 bool inUltraTest = false;
 
+bool buzzerTestState = false; // State variable for buzzer test mode
+
 // -------------------- SETUP --------------------
 void setup()
 {
@@ -142,11 +144,22 @@ void loop()
     // Turn buzzer ON when either button is pressed
     if (digitalRead(BUTTON1_PIN) == HIGH || digitalRead(BUTTON2_PIN) == HIGH)
     {
-      digitalWrite(BUZZER_PIN, HIGH);
+      buzzerTestState = true;
     }
     else
     {
       digitalWrite(BUZZER_PIN, LOW);
+      buzzerTestState = false;
+    }
+
+    // In buzzer test mode, beep the buzzer for an intensity based on potentiometer value
+    if (buzzerTestState == true)
+    {
+      int potValue = analogRead(POT_PIN);
+      int currPotLevel = map(potValue, 0, 1023, 0, 255); // Map pot to levels 0-100
+      analogWrite(BUZZER_PIN, currPotLevel);             // Apply PWM signal to buzzer
+      delay(100);                                        // Short delay to allow sound to be heard
+      analogWrite(BUZZER_PIN, 0);                        // Turn off buzzer briefly
     }
 
     // Exit if both buttons pressed
@@ -273,6 +286,13 @@ void loop()
 }
 
 // -------------------- FUNCTION DEFINITIONS --------------------
+// Beep buzzer for specified duration (milliseconds)
+void beepBuzzer(int duration)
+{
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(duration);
+  digitalWrite(BUZZER_PIN, LOW);
+}
 
 // Reads potentiometer value and maps it to one of the menu items
 void updateSelection()
@@ -359,7 +379,6 @@ void drawBuzzerTest()
     // When button is pressed, show sound waves
     if (digitalRead(BUTTON1_PIN) == HIGH || digitalRead(BUTTON2_PIN) == HIGH)
     {
-      digitalWrite(BUZZER_PIN, HIGH);
       u8g.drawCircle(50, 40, 5);
       u8g.drawCircle(55, 40, 8);
       u8g.drawCircle(60, 40, 11);
